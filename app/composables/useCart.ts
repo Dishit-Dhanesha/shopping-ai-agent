@@ -12,7 +12,7 @@ export function useCart() {
     errorProductId.value = null
 
     try {
-      const res: any = await $fetch("http://localhost:3000/api/cart/add", {
+      const res: any = await $fetch("https://shopping-ai-agent.onrender.com/api/cart/add", {
         method: "POST",
         body: {
           sessionId,

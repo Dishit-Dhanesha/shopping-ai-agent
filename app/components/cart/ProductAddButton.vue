@@ -17,7 +17,7 @@ const loading = ref(false)
 const handleAdd = async () => {
   loading.value = true
 
-  await $fetch("http://localhost:3000/api/cart/add", {
+  await $fetch("https://shopping-ai-agent.onrender.com/api/cart/add", {
     method: "POST",
     body: {
       productId: props.productId,
