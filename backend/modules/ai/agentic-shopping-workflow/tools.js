@@ -396,6 +396,38 @@ export const clearCartTool = tool(
     }
 );
 
+export const checkoutCartTool = tool(
+    async ({ sessionId }) => {
+        console.log(`Checking Out the session for session: ${sessionId}`);
+
+        try {
+            const result = await clearCart(sessionId);
+
+            return JSON.stringify({
+                operation: "clear",
+                success: result.success,
+                itemsCleared: result.itemsCleared || 0,
+                message: result.message || "Checkout successfully"
+            });
+
+        } catch (error) {
+            console.error('Error Checking out your cart:', error);
+            return JSON.stringify({
+                operation: "checkout",
+                success: false,
+                error: "Failed to Checkout cart"
+            });
+        }
+    },
+    {
+        name: "clear_cart",
+        description: "Clear all items from user's shopping cart.",
+        schema: z.object({
+            sessionId: z.string().describe("User session ID")
+        })
+    }
+);
+
 export const groceryTools = [
     fastRecipeIngredientsTool,
     searchProductsTool,
@@ -403,4 +435,5 @@ export const groceryTools = [
     viewCartTool,
     clearCartTool,
     directAnswerTool,
+    checkoutCartTool,
 ];

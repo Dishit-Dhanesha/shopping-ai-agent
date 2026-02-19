@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { cartItemCount, isCartOpen } = useLocalCart()
+const { cartItemCount, isCartOpen } = useUnifiedCart()
 
 const isCategoryMenuOpen = ref(false)
 

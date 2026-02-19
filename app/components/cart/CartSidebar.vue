@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { cart, isCartOpen, removeFromCart, updateQuantity, clearCart, cartTotal } = useLocalCart()
+const { cart, isCartOpen, removeFromCart, updateQuantity, clearCart, cartTotal } = useUnifiedCart()
 
 // Debug
 console.log('CartSidebar mounted, isCartOpen:', isCartOpen.value)

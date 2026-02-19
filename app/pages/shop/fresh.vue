@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { addToCart } = useLocalCart()
+const { addToCart } = useUnifiedCart()
 
 const products = [
   {

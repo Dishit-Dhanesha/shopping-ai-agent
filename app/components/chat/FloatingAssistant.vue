@@ -65,21 +65,28 @@ const useSuggestion = (text: string) => {
 /* ---------------------------------------
    ✅ INLINE BUTTON CLICK HANDLER
 ---------------------------------------- */
-const { addToCart: addToLocalCart } = useLocalCart()
+const { addToCart: addToUnifiedCart, removeFromCart } = useUnifiedCart()
 
-const handleChatClick = (event: MouseEvent) => {
+const handleChatClick = async (event: MouseEvent) => {
   const target = event.target as HTMLElement
 
   // ✅ Add - check for button or its parent
   const addBtn = target.closest('.add-to-cart-btn')
   if (addBtn) {
     const id = Number(addBtn.getAttribute('data-product-id'))
-    const name = addBtn.getAttribute('data-product-name') || `Product #${id}`
+    const rawName = addBtn.getAttribute('data-product-name') || `Product #${id}`
     const price = Number(addBtn.getAttribute('data-product-price')) || 50
     
+    // Clean up product name: remove ** and trim - from start/end
+    const name = rawName
+      .replace(/\*\*/g, '') // Remove all **
+      .replace(/^-\s*/, '') // Remove leading - and spaces
+      .replace(/\s*-$/, '') // Remove trailing - and spaces
+      .trim()
+    
     if (id) {
-      // Add to local cart
-      addToLocalCart({
+      // Add to unified cart (syncs with both localStorage and server)
+      await addToUnifiedCart({
         id,
         name,
         price,
@@ -90,6 +97,31 @@ const handleChatClick = (event: MouseEvent) => {
         description: `${name} added to your cart`,
         color: 'primary',
         icon: 'i-heroicons-check-circle',
+      })
+    }
+  }
+
+  // ✅ Remove - check for button or its parent
+  const removeBtn = target.closest('.remove-from-cart-btn')
+  if (removeBtn) {
+    const id = Number(removeBtn.getAttribute('data-product-id'))
+    const rawName = removeBtn.getAttribute('data-product-name') || `Product #${id}`
+    
+    // Clean up product name
+    const name = rawName
+      .replace(/\*\*/g, '')
+      .replace(/^-\s*/, '')
+      .replace(/\s*-$/, '')
+      .trim()
+    
+    if (id) {
+      await removeFromCart(id)
+      
+      toast.add({
+        title: 'Feature Under Development',
+        description: `Will be updated soon`,
+        color: 'red',
+        icon: 'i-heroicons-trash',
       })
     }
   }
@@ -130,15 +162,15 @@ const handleChatClick = (event: MouseEvent) => {
     >
       <div
         v-if="isChatOpen"
-        class="bg-white rounded-2xl shadow-2xl w-[380px] sm:w-[420px] h-[600px] flex flex-col overflow-hidden border border-gray-200"
+        class="bg-white rounded-2xl shadow-2xl w-[450px] sm:w-[500px] h-[600px] flex flex-col overflow-hidden border border-gray-200"
       >
         <!-- Header -->
-        <div class="bg-blue-600 p-4 flex items-center justify-between">
+        <div class="bg-gray-900 p-4 flex items-center justify-between border-b border-gray-800">
           <div class="flex items-center gap-3">
             <div class="text-3xl animate-pulse">🤖</div>
             <div>
-              <h4 class="font-bold text-white text-sm">SHOPPING ASSISTANT</h4>
-              <span class="text-xs text-blue-100 flex items-center gap-1">
+              <h4 class="font-bold text-white text-sm">PERSONAL AI SHOPPING ASSISTANT</h4>
+              <span class="text-xs text-gray-400 flex items-center gap-1">
                 <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
                 ONLINE • READY TO HELP!
               </span>
@@ -152,7 +184,7 @@ const handleChatClick = (event: MouseEvent) => {
               size="xs"
               icon="i-heroicons-arrow-right-start-on-rectangle"
               @click="endSession"
-              class="text-white hover:bg-blue-700"
+              class="text-gray-400 hover:text-white hover:bg-gray-800"
             />
             <UButton
               color="neutral"
@@ -160,7 +192,7 @@ const handleChatClick = (event: MouseEvent) => {
               size="xs"
               icon="i-heroicons-minus"
               @click="minimizeChat"
-              class="text-white hover:bg-blue-700"
+              class="text-gray-400 hover:text-white hover:bg-gray-800"
             />
           </div>
         </div>
@@ -174,7 +206,7 @@ const handleChatClick = (event: MouseEvent) => {
           <div v-if="messages.length === 0" class="flex gap-3">
             <div class="text-2xl flex-shrink-0">🤖</div>
             <div class="bg-white rounded-lg p-4 text-sm text-gray-800 shadow-lg border border-gray-200">
-              <p class="mb-2">Hi there! 👋 I'm your shopping assistant!</p>
+              <p class="mb-2">Hi there! 👋 I'm your AI shopping assistant!</p>
               <p class="mb-2">I can help you with:</p>
               <ul class="space-y-1 mb-2">
                 <li>🥘 Recipe Ingredients</li>
@@ -202,7 +234,7 @@ const handleChatClick = (event: MouseEvent) => {
                 class="rounded-lg p-4 text-sm shadow-md whitespace-pre-line"
                 :class="
                   message.type === 'user'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-green-600 text-white'
                     : 'bg-white text-gray-800 border border-gray-200'
                 "
               >
@@ -214,7 +246,7 @@ const handleChatClick = (event: MouseEvent) => {
                 <!-- ✅ Assistant Message With Inline Buttons -->
                 <span v-else class="prose text-gray-800">
                   <span v-html="message.html || message.content"></span>
-                  <span v-if="i === messages.length - 1 && !isTyping && message.content" class="inline-block w-1 h-4 bg-blue-600 ml-1 animate-pulse"></span>
+                  <span v-if="i === messages.length - 1 && !isTyping && message.content" class="inline-block w-1 h-4 bg-green-600 ml-1 animate-pulse"></span>
                 </span>
               </div>
             </div>
@@ -242,7 +274,7 @@ const handleChatClick = (event: MouseEvent) => {
               v-for="suggestion in suggestions"
               :key="suggestion.label"
               @click="useSuggestion(suggestion.text)"
-              class="flex-shrink-0 bg-white hover:bg-blue-600 hover:text-white text-gray-800 px-3 py-2 rounded-lg text-xs font-bold transition-all border border-gray-300"
+              class="flex-shrink-0 bg-white hover:bg-green-600 hover:text-white text-gray-800 px-3 py-2 rounded-lg text-xs font-bold transition-all border border-gray-300"
             >
               {{ suggestion.emoji }} {{ suggestion.label }}
             </button>
@@ -254,14 +286,14 @@ const handleChatClick = (event: MouseEvent) => {
               v-model="chatInput"
               type="text"
               placeholder="Ask about recipes, ingredients, or products..."
-              class="flex-1 bg-gray-100 text-gray-800 px-4 py-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300"
+              class="flex-1 bg-gray-100 text-gray-800 px-4 py-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-300"
             />
             <UButton
               type="submit"
               icon="i-heroicons-paper-airplane"
               size="lg"
               :disabled="!chatInput.trim()"
-              :class="chatInput.trim() ? '!bg-blue-600 hover:!bg-blue-700 !text-white' : '!bg-gray-400 !text-gray-600 cursor-not-allowed'"
+              :class="chatInput.trim() ? '!bg-green-600 hover:!bg-green-700 !text-white' : '!bg-gray-400 !text-gray-600 cursor-not-allowed'"
             />
           </form>
         </div>
@@ -273,39 +305,58 @@ const handleChatClick = (event: MouseEvent) => {
 <style scoped>
 /* ✅ Markdown spacing cleanup */
 .prose p {
-  margin: 4px 0 !important;
+  margin: 2px 0 !important;
   color: inherit;
+  line-height: 1.3;
 }
 
 .prose ul {
-  margin: 6px 0 !important;
+  margin: 4px 0 !important;
   padding-left: 18px;
   color: inherit;
 }
 
 .prose li {
-  margin: 2px 0 !important;
+  margin: 1px 0 !important;
   color: inherit;
+  line-height: 1.3;
+}
+
+.prose br {
+  display: none !important;
+}
+
+/* Reduce spacing between consecutive paragraphs */
+.prose p + p {
+  margin-top: 4px !important;
+}
+
+/* Compact spacing for assistant messages */
+.prose {
+  line-height: 1.4 !important;
 }
 
 /* ✅ Nuxt UI Button Overrides for Inline Chat Buttons */
 :deep(.add-to-cart-btn),
+:deep(.remove-from-cart-btn),
 :deep(.details-btn) {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
   
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   padding: 0;
-  margin: 0 4px;
+  margin: 0 3px;
   
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 14px;
   
   cursor: pointer;
   transition: all 0.2s ease;
-  border: none;
+  border: 1.5px solid #d1d5db;
+  background-color: transparent;
+  color: #6b7280;
   vertical-align: middle;
   
   /* Fix emoji alignment */
@@ -313,21 +364,24 @@ const handleChatClick = (event: MouseEvent) => {
   font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 
-:deep(.add-to-cart-btn) {
-  background-color: #ea580c;
-}
-
 :deep(.add-to-cart-btn:hover) {
-  background-color: #c2410c;
-  transform: scale(1.1);
+  background-color: #10b981;
+  border-color: #10b981;
+  color: white;
+  transform: translateY(-1px);
 }
 
-:deep(.details-btn) {
-  background-color: #374151;
+:deep(.remove-from-cart-btn:hover) {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  color: white;
+  transform: translateY(-1px);
 }
 
 :deep(.details-btn:hover) {
-  background-color: #1f2937;
-  transform: scale(1.1);
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+  transform: translateY(-1px);
 }
 </style>

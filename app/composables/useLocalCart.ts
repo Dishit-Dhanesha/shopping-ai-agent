@@ -21,7 +21,7 @@ export function useLocalCart() {
 
   // Load cart from localStorage on initialization
   const loadCart = () => {
-    if (process.client) {
+    if (import.meta.client) {
       const savedCart = localStorage.getItem('shopping-cart')
       if (savedCart) {
         try {
@@ -36,7 +36,7 @@ export function useLocalCart() {
 
   // Save cart to localStorage whenever it changes
   const saveCart = () => {
-    if (process.client) {
+    if (import.meta.client) {
       localStorage.setItem('shopping-cart', JSON.stringify(cart.value))
     }
   }
@@ -99,7 +99,7 @@ export function useLocalCart() {
   })
 
   // Initialize cart on mount
-  if (process.client) {
+  if (import.meta.client) {
     loadCart()
   }
 
