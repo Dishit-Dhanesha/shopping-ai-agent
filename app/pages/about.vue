@@ -45,7 +45,7 @@ const backendStack = [
   },
   {
     title: 'Redis',
-    description: 'In-memory data store for caching and session management',
+    description: 'In-memory data store for caching and session management (Reference Redis cache Demo project)',
     link: 'https://redis.io/',
   },
   {
