@@ -18,20 +18,11 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
-  app: {
-    head: {
-      htmlAttrs: { lang: 'en' },
-      link: [
-        { rel: 'icon', href: '/logo.svg', type: 'image/svg+xml' },
-        { rel: 'preconnect', href: 'https://graphql.myshopify.com' },
-      ],
-    },
-  },
 
   css: ['~/assets/css/main.css'],
 
   site: {
-    url: 'https://www.nuxt-commerce.dev',
+    url: 'https://shopping-ai-agent-rho.vercel.app/',
   },
 
   colorMode: {
@@ -40,7 +31,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      siteUrl: 'https://www.nuxt-commerce.dev',
+      siteUrl: 'https://shopping-ai-agent-rho.vercel.app/',
     },
   },
 
